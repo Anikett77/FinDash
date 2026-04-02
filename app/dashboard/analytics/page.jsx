@@ -265,7 +265,7 @@ function StatCard({ title, value, green, red }) {
       </CardHeader>
       <CardContent>
         <div
-          className={`text-2xl font-bold ${
+          className={`text-2xl font-bold mt-10 ${
             green ? "text-green-600" : red ? "text-red-600" : ""
           }`}
         >
@@ -278,7 +278,7 @@ function StatCard({ title, value, green, red }) {
 
 function Row({ name, count, total, avg }) {
   return (
-    <tr className="border-b hover:bg-muted/50">
+    <tr className="border-b border-gray-400/30 hover:bg-muted/50">
       <td className="py-2 font-medium">{name}</td>
       <td className="text-right">{count}</td>
       <td className="text-right font-semibold">{total}</td>
