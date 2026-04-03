@@ -16,22 +16,7 @@ import { BarChart, Bar,
   Cell,
 } from "recharts";
 
-const data = [
-  { month: "Jan", income: 8000, expense: 1200 },
-  { month: "Feb", income: 10000, expense: 1500 },
-  { month: "Mar", income: 12000, expense: 1800 },
-  { month: "Apr", income: 11000, expense: 1600 },
-  { month: "May", income: 14000, expense: 2000 },
-  { month: "Jun", income: 16000, expense: 2200 },
-];
-const data2 = [
-  { name: "Rent", value: 4000 },
-  { name: "Utilities", value: 2000 },
-  { name: "Supplies", value: 1500 },
-  { name: "Software", value: 1000 },
-];
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
 
 export default function DashboardPage() {
@@ -75,10 +60,44 @@ useEffect(() => {
   fetchTransactions()
 }, [])
 
-    const totalIncome  = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0)
-  const totalExpense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
-  const netBalance   = totalIncome - totalExpense
-  const totaltransaction = transactions.length
+const now = new Date()
+
+const monthlyTransactions = transactions.filter(t => {
+  const d = new Date(t.date)
+  return (
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear()
+  )
+})
+
+const totalIncome  = monthlyTransactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0)
+const totalExpense = monthlyTransactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
+const netBalance   = totalIncome - totalExpense
+const totaltransaction = monthlyTransactions.length
+
+  // group by month for bar chart
+const barData = transactions.reduce((acc, t) => {
+  const month = new Date(t.date).toLocaleString("en-US", { month: "short" })
+  const existing = acc.find(d => d.month === month)
+  if (existing) {
+    existing[t.type] = (existing[t.type] || 0) + t.amount
+  } else {
+    acc.push({ month, [t.type]: t.amount })
+  }
+  return acc
+}, [])
+
+// group expenses by category for pie chart
+const pieData = monthlyTransactions
+  .filter(t => t.type === "expense")
+  .reduce((acc, t) => {
+    const existing = acc.find(d => d.name === t.category)
+    if (existing) existing.value += t.amount
+    else acc.push({ name: t.category, value: t.amount })
+    return acc
+  }, [])
+
+  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"];
 
   return (
 
@@ -122,19 +141,16 @@ useEffect(() => {
 
       {/* Chart */}
       <div className="w-full h-[300px]">
-        <ResponsiveContainer>
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-            
-            <XAxis dataKey="month" stroke="#aaa" />
-            <YAxis stroke="#aaa" />
-            
-            <Tooltip />
-            <Legend />
-
-            <Bar dataKey="income" fill="#10b981" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
-          </BarChart>
+        <ResponsiveContainer width="100%" height="100%">
+<BarChart data={barData}>
+  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+  <XAxis dataKey="month" stroke="#aaa" />
+  <YAxis stroke="#aaa" />
+  <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} />
+  <Legend />
+  <Bar dataKey="income"  fill="#10b981" radius={[4, 4, 0, 0]} />
+  <Bar dataKey="expense" fill="#ef4444" radius={[4, 4, 0, 0]} />
+</BarChart>
         </ResponsiveContainer>
       </div>
     </div></div>
@@ -148,23 +164,13 @@ useEffect(() => {
 
       {/* Chart */}
       <div className="w-full h-[300px]">
-        <ResponsiveContainer>
-          <PieChart>
-            <Pie
-              data={data2}
-              dataKey="value"
-              nameKey="name"
-              outerRadius={100}
-              innerRadius={60}   // 🔥 donut style
-              paddingAngle={3}
-            >
-              {data.map((entry, index) => (
-                <Cell key={index} fill={COLORS[index]} />
-              ))}
-            </Pie>
-
-            <Tooltip />
-          </PieChart>
+        <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} dataKey="value" nameKey="name" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                    {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  </Pie>
+                  <Tooltip formatter={(v) => `₹${v.toLocaleString()}`} />
+                </PieChart>
         </ResponsiveContainer>
       </div>
     </div></div>

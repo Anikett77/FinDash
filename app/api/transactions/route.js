@@ -54,6 +54,17 @@ export async function PUT(request) {
   if (user.role !== "admin") return NextResponse.json({ error: "Admins only" }, { status: 403 })
 
   await connectDB()
+  const now = new Date()
+
+const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+const endOfMonth   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+
+const transactions = await Transaction.find({
+  date: {
+    $gte: startOfMonth,
+    $lte: endOfMonth
+  }
+}).sort({ date: -1 })
   const { _id, description, amount, date, type, category, status } = await request.json()
 
   if (!_id) return NextResponse.json({ error: "ID required" }, { status: 400 })
