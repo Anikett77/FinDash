@@ -8,7 +8,7 @@ const roleColors = {
   viewer:  "bg-gray-100 text-gray-800",
 }
 
-export default function UserManagement() {
+export default function UserManagement({message = "You don't have permission to view this page."}) {
   const [currentRole, setCurrentRole] = useState(null)
   const [currentUserId, setCurrentUserId] = useState(null)
   const [users, setUsers]             = useState([])
@@ -94,15 +94,37 @@ export default function UserManagement() {
 
   if (currentRole === "viewer" || currentRole === "analyst") {
     return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl mb-2">Access Denied 🚫</h1>
-          <p>Only admins can manage users</p>
-          <button onClick={() => router.push("/dashboard")} className="mt-4 bg-black text-white px-4 py-2">
-            Go to Dashboard
-          </button>
+<div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-12 max-w-md w-full text-center">
+ 
+        {/* Icon */}
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg width="28" height="28" fill="none" stroke="#ef4444" strokeWidth="1.75" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+          </svg>
         </div>
+ 
+        {/* Text */}
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Access Restricted</h1>
+        <p className="text-sm text-gray-500 mb-8 leading-relaxed">{message}</p>
+ 
+        {/* Role info */}
+        <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 mb-8 text-left">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Required Access</p>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-purple-500" />
+            <span className="text-sm text-gray-700">Admin or Analyst role required</span>
+          </div>
+        </div>
+ 
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="w-full bg-blue-900 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-blue-800 transition-colors"
+        >
+          Back to Dashboard
+        </button>
       </div>
+    </div>
     )
   }
 

@@ -179,7 +179,6 @@ const pieData = monthlyTransactions
   </div>
   <BalanceChart/>
   <RecentTransactions/>
-  <Logout/>
 </div>
   );
 }
