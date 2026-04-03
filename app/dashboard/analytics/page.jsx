@@ -51,10 +51,20 @@ export default function AnalyticsPage() {
   }, []);
 
   // ── Computed stats ────────────────────────────────────────────────────────
-  const totalIncome     = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
-  const totalExpense    = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-  const netBalance      = totalIncome - totalExpense;
-  const totalTransactions = transactions.length;
+const now = new Date()
+
+const monthlyTransactions = transactions.filter(t => {
+  const d = new Date(t.date)
+  return (
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear()
+  )
+})
+
+const totalIncome  = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0)
+const totalExpense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
+const netBalance   = totalIncome - totalExpense
+const totalTransactions = transactions.length
   const completedCount  = transactions.filter(t => t.status === "completed").length;
 
   // ── Chart data built from real transactions ───────────────────────────────
@@ -77,20 +87,20 @@ export default function AnalyticsPage() {
 
   // 3. Transaction type pie
   const typeData = [
-    { name: "Income",  value: transactions.filter(t => t.type === "income").length  },
-    { name: "Expense", value: transactions.filter(t => t.type === "expense").length },
+    { name: "Income",  value: monthlyTransactions.filter(t => t.type === "income").length  },
+    { name: "Expense", value: monthlyTransactions.filter(t => t.type === "expense").length },
   ];
 
   // 4. Status bar chart
   const statusMap = {};
-  transactions.forEach(t => {
+  monthlyTransactions.forEach(t => {
     statusMap[t.status] = (statusMap[t.status] || 0) + 1;
   });
   const statusData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
 
   // 5. Category details table
   const categoryDetails = {};
-  transactions.forEach(t => {
+  monthlyTransactions.forEach(t => {
     if (!categoryDetails[t.category]) categoryDetails[t.category] = { count: 0, total: 0 };
     categoryDetails[t.category].count += 1;
     categoryDetails[t.category].total += t.amount;
@@ -128,6 +138,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* STATS — grid-cols-5 */}
+      <h1 className="-mb-5 text-lg font-bold font-serif">This is the total financial insight of this financial year 2026</h1>
       <div className="grid grid-cols-5 gap-4 mt-10">
 
         <div className="w-full bg-white border border-gray-400/40 rounded-2xl p-7">
@@ -142,7 +153,7 @@ export default function AnalyticsPage() {
           </div>
           <div className="text-2xl font-bold mt-10">₹{totalIncome.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</div>
           <p className="text-xs text-gray-500 mt-1">From all sources</p>
-          <p className="font-bold text-green-600 mt-2 text-xs">+12% from last month</p>
+
         </div>
 
         <div className="w-full bg-white border border-gray-400/40 rounded-2xl p-7">
@@ -151,7 +162,7 @@ export default function AnalyticsPage() {
           </div>
           <div className="text-2xl font-bold mt-10">₹{totalExpense.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</div>
           <p className="text-xs text-gray-500 mt-1">Across all categories</p>
-          <p className="font-bold text-red-600 mt-2 text-xs">-5% from last month</p>
+
         </div>
 
         <div className="w-full bg-white border border-gray-400/40 rounded-2xl p-7">
@@ -160,7 +171,7 @@ export default function AnalyticsPage() {
             ₹{netBalance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
           <p className="text-xs text-gray-500 mt-1">Net position</p>
-          <p className="font-bold text-green-600 mt-2 text-xs">+8% from last month</p>
+
         </div>
 
         <div className="w-full bg-white border border-gray-400/40 rounded-2xl p-7">
@@ -181,7 +192,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Balance Trend</CardTitle>
-            <CardDescription>Net balance grouped by month</CardDescription>
+            <CardDescription>Net balance grouped by month of this financial year</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="w-full h-[300px]">
@@ -202,7 +213,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Expenses by Category</CardTitle>
-            <CardDescription>Distribution of spending</CardDescription>
+            <CardDescription>Distribution of spending of this financial year</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="w-full h-[300px]">
@@ -222,7 +233,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Transaction Types</CardTitle>
-            <CardDescription>Income vs Expense count</CardDescription>
+            <CardDescription>Income vs Expense count of this month</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="w-full h-[300px]">
@@ -243,7 +254,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Status Overview</CardTitle>
-            <CardDescription>Transactions by status</CardDescription>
+            <CardDescription>Transactions by status of this month</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="w-full h-[300px]">
@@ -266,7 +277,7 @@ export default function AnalyticsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Category Details</CardTitle>
-          <CardDescription>Breakdown per category from DB</CardDescription>
+          <CardDescription>Breakdown per category </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (

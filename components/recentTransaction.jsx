@@ -22,6 +22,16 @@ export default function RecentTransactions() {
     fetchTransactions()
   }, [])
 
+  const now = new Date()
+
+const monthlyTransactions = transactions.filter(tx => {
+  const d = new Date(tx.date)
+  return (
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear()
+  )
+})
+
   if (loading) return <p className="p-4 text-gray-400 text-sm">Loading...</p>
 
   return (
@@ -30,7 +40,7 @@ export default function RecentTransactions() {
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Recent Transactions</h2>
-        <p className="text-sm text-gray-400">Your latest financial activity</p>
+        <p className="text-sm text-gray-400">Your latest financial activity of this month</p>
       </div>
 
       {/* Empty state */}
@@ -40,7 +50,7 @@ export default function RecentTransactions() {
 
       {/* List */}
       <div className="space-y-4">
-        {transactions.map((tx) => {
+        {monthlyTransactions.map((tx) => {
           const isIncome = tx.type === "income"
 
           return (

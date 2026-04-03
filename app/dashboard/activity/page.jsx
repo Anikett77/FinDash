@@ -39,6 +39,9 @@ const activities = [
 export default function ActivityLog() {
 
   const[user, setUser] = useState(null);
+    const [users, setUsers] = useState([])
+      const [loading, setLoading]         = useState(true)
+        const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -50,7 +53,47 @@ export default function ActivityLog() {
     fetchUser();
   }, []);
 
+  // fetch all users from DB
+  const fetchUsers = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/users")
+      if (!res.ok) return
+      const data = await res.json()
+      setUsers(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.log("Error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchUsers() }, [])
+
+      // fetch transactions
+  const fetchTransactions = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/transactions")
+      if (!res.ok) return
+      const data = await res.json()
+      setTransactions(Array.isArray(data) ? data : data.transactions ?? [])
+    } catch (err) {
+      console.log("Error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchTransactions() }, [])
   
+    // stats from real data
+  const totalUsers   = users.length
+  const adminCount   = users.filter(u => u.role === "admin").length
+  const analystCount = users.filter(u => u.role === "analyst").length
+  const viewerCount  = users.filter(u => u.role === "viewer").length
+
+  const totalTransactions = transactions.length
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -65,8 +108,8 @@ export default function ActivityLog() {
 
       {/* Stats */}
       <div className="grid md:grid-cols-3 gap-4">
-        <Stat title="Total Records" value="8" sub="Financial transactions" />
-        <Stat title="System Users" value="5" sub="Total users in system" />
+        <Stat title="Total Records" value={totalTransactions} sub="Financial transactions" />
+        <Stat title="System Users" value={totalUsers} sub="Total users in system" />
         <Stat title="Your Role" value={user?.role} sub="Current permissions level" />
       </div>
 

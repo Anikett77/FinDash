@@ -52,6 +52,7 @@ export default function UserManagement() {
 
   useEffect(() => { fetchUsers() }, [])
 
+
   // ── Delete user ───────────────────────────────────────────────────────────
   const handleDelete = async (id) => {
     if (!confirm("Delete this user?")) return
@@ -86,6 +87,7 @@ export default function UserManagement() {
       console.log("Error:", err)
     }
   }
+
 
   // access control
   if (currentRole === null) return <p className="p-4">Loading...</p>

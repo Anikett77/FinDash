@@ -134,6 +134,7 @@ export default function FinancialRecords() {
       </div>
 
       {/* STATS */}
+            <h1 className=" text-lg font-bold font-serif">This is the total financial insight of this financial year 2026</h1>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card title="Total Income"   value={`₹${totalIncome.toLocaleString("en-IN",  { minimumFractionDigits: 2 })}`} color="green" />
         <Card title="Total Expenses" value={`₹${totalExpense.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`} color="red" />
@@ -164,7 +165,7 @@ export default function FinancialRecords() {
       <div className="bg-white rounded-xl border border-gray-400/30 shadow-sm p-6">
         <div className="border-b border-gray-400/30 mb-4">
           <h2 className="text-lg font-semibold">Transactions ({filtered.length})</h2>
-          <p className="text-sm text-gray-500 mb-5">Showing {filtered.length} of {transactions.length} transactions</p>
+          <p className="text-sm text-gray-500 mb-5">Showing {filtered.length} of {transactions.length} transactions of this financial year</p>
         </div>
 
         {loading ? (

@@ -136,7 +136,7 @@ const pieData = monthlyTransactions
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Income vs Expenses</h2>
-        <p className="text-sm text-gray-400">Monthly comparison</p>
+        <p className="text-sm text-gray-400">Monthly comparison of this financial year</p>
       </div>
 
       {/* Chart */}
@@ -159,7 +159,7 @@ const pieData = monthlyTransactions
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold">Expenses by Category</h2>
-        <p className="text-sm text-gray-400">Distribution</p>
+        <p className="text-sm text-gray-400">Distribution expenses of this financial year</p>
       </div>
 
       {/* Chart */}
