@@ -190,7 +190,7 @@ export default function HomePage() {
                 <svg width="10" height="10" fill="none" stroke="#9ca3af" strokeWidth="1.5" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5a6 6 0 11-12 0 6 6 0 0112 0zm4.5 9l-3.75-3.75"/>
                 </svg>
-                <span className="text-xs text-gray-400">findash.vercel.app/dashboard</span>
+                <span className="text-xs text-gray-400">findash-finance.vercel.app</span>
               </div>
             </div>
 
