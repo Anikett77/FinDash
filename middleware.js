@@ -9,7 +9,6 @@ export async function middleware(req) {
 
   let user = null;
 
-  // 🟢 Verify token
   if (token) {
     try {
       const { payload } = await jwtVerify(token, secret);
@@ -19,7 +18,6 @@ export async function middleware(req) {
     }
   }
 
-  // 🔴 Not logged in → block protected routes
   if (!user) {
     if (
       pathname.startsWith("/dashboard") ||
@@ -30,26 +28,22 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-  // 🟢 Already logged in → block auth pages
+
   if (pathname === "/login" || pathname === "/signup") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // 🔐 ROLE-BASED ACCESS
-
-  // 👀 Viewer → only dashboard
   if (user.role === "viewer") {
     if (pathname.startsWith("/analytics")) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
   }
 
-  // 📊 Analyst → dashboard + analytics
+
   if (user.role === "analyst") {
-    // (can access analytics, no restriction here)
+
   }
 
-  // 👑 Admin → full access (no restriction)
 
   return NextResponse.next();
 }

@@ -24,7 +24,6 @@ export default function BalanceChart() {
       const res = await fetch("/api/transactions")
       if (!res.ok) return
       const data = await res.json()
-      console.log(data) // check what API returns, remove after
       setTransactions(Array.isArray(data) ? data : data.transactions ?? [])
     } catch (err) {
       console.log("Error:", err)
@@ -66,7 +65,7 @@ const lineData = transactions
     return acc
   }, [])
   .sort((a, b) => a.date - b.date) // 🔥 THIS LINE FIXES EVERYTHING
-  
+
   return (
     <div className="bg-white text-black rounded-xl border border-gray-400/20 p-6 shadow-sm">
       

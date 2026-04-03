@@ -10,7 +10,7 @@ export async function GET() {
   const cookieStore = await cookies();
   const token = cookieStore.get("token");
 
-  console.log("TOKEN:", token?.value);
+
 
   if (!token) {
     return NextResponse.json(
@@ -33,12 +33,12 @@ export async function GET() {
     );
   }
 
-  console.log("Decoded ID:", decoded.userId);
+
 
 
   const user = await User.findById(decoded.userId);
 
-  console.log("Matched user:", user);
+
 
   if (!user) {
     return NextResponse.json(
