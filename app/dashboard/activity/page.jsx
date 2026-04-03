@@ -1,4 +1,5 @@
-import React from "react";
+"use client"
+import React, { useEffect, useState } from "react";
 
 const activities = [
   {
@@ -33,7 +34,24 @@ const activities = [
   },
 ];
 
+
+
 export default function ActivityLog() {
+
+  const[user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const res = await fetch("/api/me");
+      const data = await res.json();
+      setUser(data);
+    };
+
+    fetchUser();
+  }, []);
+
+  
+
   return (
     <div className="p-4 md:p-8 space-y-6">
 
@@ -49,7 +67,7 @@ export default function ActivityLog() {
       <div className="grid md:grid-cols-3 gap-4">
         <Stat title="Total Records" value="8" sub="Financial transactions" />
         <Stat title="System Users" value="5" sub="Total users in system" />
-        <Stat title="Your Role" value="Admin" sub="Current permissions level" />
+        <Stat title="Your Role" value={user?.role} sub="Current permissions level" />
       </div>
 
       {/* Info Box */}

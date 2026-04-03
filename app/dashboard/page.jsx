@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import BalanceChart from "@/components/balanceChart";
 import RecentTransactions from "@/components/recentTransaction";
+import { useRouter } from "next/navigation";
 import Logout from "@/components/logout";
 import { BarChart, Bar,
   XAxis,
@@ -37,6 +38,14 @@ export default function DashboardPage() {
 
 
   const [user, setUser] = useState(null);
+    const [role, setRole]               = useState(null)
+    const [transactions, setTransactions] = useState([])
+    const [loading, setLoading]         = useState(true)
+    const [search, setSearch]           = useState("")
+    const [typeFilter, setTypeFilter]   = useState("all")
+    const [sortOrder, setSortOrder]     = useState("newest")
+    const [open, setOpen]               = useState(false)
+    const router = useRouter()
 
 useEffect(() => {
   const fetchUser = async () => {
@@ -47,6 +56,29 @@ useEffect(() => {
 
   fetchUser();
 }, []);
+const fetchTransactions = async () => {
+  setLoading(true)
+  try {
+    const res = await fetch("/api/transactions")
+    if (!res.ok) return
+    const data = await res.json()
+    console.log(data) // check what API returns, remove after
+    setTransactions(Array.isArray(data) ? data : data.transactions ?? [])
+  } catch (err) {
+    console.log("Error:", err)
+  } finally {
+    setLoading(false)
+  }
+}
+
+useEffect(() => {
+  fetchTransactions()
+}, [])
+
+    const totalIncome  = transactions.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0)
+  const totalExpense = transactions.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0)
+  const netBalance   = totalIncome - totalExpense
+  const totaltransaction = transactions.length
 
   return (
 
@@ -56,28 +88,27 @@ useEffect(() => {
   <p className="text-md mt-2 text-gray-500">Here's your financial overview</p>
   <div className="grid grid-cols-4 gap-8 mt-10">
     <div className="w-full h-50 bg-white border border-gray-400/40 rounded-2xl p-7">
-    <div className="flex justify-between"><p>Total Income</p><img src="/arrow.svg" alt="" /></div>
-    <div className="text-2xl font-bold mt-10">₹2,35,000.00</div>
+    <div className="flex justify-between"><p>Total Income</p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-up-right w-4 h-4 text-green-600" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></div>
+    <div className="text-2xl font-bold mt-10">{`₹${totalIncome.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}</div>
     <p className="text-xs text-gray-500 mt-1">From all sources</p>
     <p className="font-bold text-green-600 mt-2 text-xs">+12% from last month</p>
     </div>
     <div className="w-full h-50 bg-white border border-gray-400/40 rounded-2xl p-7">
-    <div className="flex justify-between"><p>Total Income</p><img src="/arrow.svg" alt="" /></div>
-    <div className="text-2xl font-bold mt-10">₹2,35,000.00</div>
-    <p className="text-xs text-gray-500 mt-1">From all sources</p>
-    <p className="font-bold text-green-600 mt-2 text-xs">+12% from last month</p>
+    <div className="flex justify-between"><p>Total Expenses</p><svg xmlns="http://www.w3.org/2000/svg" width="24" className="w-5 h-5 text-red-600 rotate-180" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg></div>
+    <div className="text-2xl font-bold mt-10">{`₹${totalExpense.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}</div>
+    <p className="text-xs text-gray-500 mt-1">Across all Categories</p>
+    <p className="font-bold text-red-600 mt-2 text-xs">-5% from last month</p>
     </div>
     <div className="w-full h-50 bg-white border border-gray-400/40 rounded-2xl p-7">
-    <div className="flex justify-between"><p>Total Income</p><img src="/arrow.svg" alt="" /></div>
-    <div className="text-2xl font-bold mt-10">₹2,35,000.00</div>
-    <p className="text-xs text-gray-500 mt-1">From all sources</p>
-    <p className="font-bold text-green-600 mt-2 text-xs">+12% from last month</p>
+    <div className="flex justify-between"><p>Net Balance</p>₹</div>
+    <div className="text-2xl font-bold mt-10">{`₹${netBalance.toLocaleString("en-US",   { minimumFractionDigits: 2 })}`}</div>
+    <p className="text-xs text-gray-500 mt-1">Net position</p>
+    <p className="font-bold text-green-600 mt-2 text-xs">+8% from last month</p>
     </div>
     <div className="w-full h-50 bg-white border border-gray-400/40 rounded-2xl p-7">
-    <div className="flex justify-between"><p>Total Income</p><img src="/arrow.svg" alt="" /></div>
-    <div className="text-2xl font-bold mt-10">₹2,35,000.00</div>
-    <p className="text-xs text-gray-500 mt-1">From all sources</p>
-    <p className="font-bold text-green-600 mt-2 text-xs">+12% from last month</p>
+    <div className="flex justify-between"><p>Transactions</p>💳</div>
+    <div className="text-2xl font-bold mt-10">{totaltransaction}</div>
+    <p className="text-xs text-gray-500 mt-1">This month</p>
     </div> 
   </div>
   <div className="flex gap-7 mt-7 mb-10">

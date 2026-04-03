@@ -1,210 +1,266 @@
 "use client"
-import React from "react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
-const users = [
-  {
-    name: "Alex Admin",
-    email: "admin@example.com",
-    role: "Admin",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=admin",
-  },
-  {
-    name: "Emma Data Analyst",
-    email: "emma@example.com",
-    role: "Viewer",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=emma",
-  },
-  {
-    name: "John Viewer",
-    email: "viewer@example.com",
-    role: "Viewer",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=viewer",
-  },
-  {
-    name: "Robert Finance Manager",
-    email: "robert@example.com",
-    role: "Analyst",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=robert",
-  },
-  {
-    name: "Sarah Analyst",
-    email: "analyst@example.com",
-    role: "Analyst",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=analyst",
-  },
-];
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 const roleColors = {
-  Admin: "bg-purple-100 text-purple-800",
-  Analyst: "bg-blue-100 text-blue-800",
-  Viewer: "bg-gray-100 text-gray-800",
-};
+  admin:   "bg-purple-100 text-purple-800",
+  analyst: "bg-blue-100 text-blue-800",
+  viewer:  "bg-gray-100 text-gray-800",
+}
 
 export default function UserManagement() {
+  const [currentRole, setCurrentRole] = useState(null)
+  const [currentUserId, setCurrentUserId] = useState(null)
+  const [users, setUsers]             = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [search, setSearch]           = useState("")
+  const [roleFilter, setRoleFilter]   = useState("all")
+  const [editingId, setEditingId]     = useState(null)   // which user's role is being edited
+  const [newRole, setNewRole]         = useState("")
+  const router = useRouter()
 
-
-
-  const [role, setRole] = useState(null);
-  const router = useRouter();
-
+  // fetch current logged in user
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchMe = async () => {
       try {
-        const res = await fetch("/api/me");
-
-        if (!res.ok) {
-          console.log("Not authorized");
-          return;
-        }
-
-        const data = await res.json();
-        setRole(data.role);
+        const res = await fetch("/api/me")
+        if (!res.ok) return
+        const data = await res.json()
+        setCurrentRole(data.role)
+        setCurrentUserId(data._id || data.id)
       } catch (err) {
-        console.log("Error:", err);
+        console.log("Error:", err)
       }
-    };
+    }
+    fetchMe()
+  }, [])
 
-    fetchUser();
-  }, []);
+  // fetch all users from DB
+  const fetchUsers = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch("/api/users")
+      if (!res.ok) return
+      const data = await res.json()
+      setUsers(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.log("Error:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  // ⏳ loading state
-  if (role === null) return <p className="p-4">Loading...</p>;
+  useEffect(() => { fetchUsers() }, [])
 
-  // those who arent
-  if (role === "viewer" || role === "analyst") {
+  // ── Delete user ───────────────────────────────────────────────────────────
+  const handleDelete = async (id) => {
+    if (!confirm("Delete this user?")) return
+    try {
+      const res = await fetch("/api/users", {
+        method:  "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ _id: id }),
+      })
+      const data = await res.json()
+      if (!res.ok) { alert(data.error); return }
+      setUsers(prev => prev.filter(u => u._id !== id))
+    } catch (err) {
+      console.log("Error:", err)
+    }
+  }
+
+  // ── Update role ───────────────────────────────────────────────────────────
+  const handleRoleUpdate = async (id) => {
+    try {
+      const res = await fetch("/api/users", {
+        method:  "PUT",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ _id: id, role: newRole }),
+      })
+      const data = await res.json()
+      if (!res.ok) { alert(data.error); return }
+      // update in state directly
+      setUsers(prev => prev.map(u => u._id === id ? { ...u, role: data.role } : u))
+      setEditingId(null)
+    } catch (err) {
+      console.log("Error:", err)
+    }
+  }
+
+  // access control
+  if (currentRole === null) return <p className="p-4">Loading...</p>
+
+  if (currentRole === "viewer" || currentRole === "analyst") {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl mb-2">Access Denied 🚫</h1>
-          <p>You are not allowed to view analytics</p>
-
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="mt-4 bg-black text-white px-4 py-2"
-          >
+          <p>Only admins can manage users</p>
+          <button onClick={() => router.push("/dashboard")} className="mt-4 bg-black text-white px-4 py-2">
             Go to Dashboard
           </button>
         </div>
       </div>
-    );
+    )
   }
 
+  // stats from real data
+  const totalUsers   = users.length
+  const adminCount   = users.filter(u => u.role === "admin").length
+  const analystCount = users.filter(u => u.role === "analyst").length
+  const viewerCount  = users.filter(u => u.role === "viewer").length
+
+  // filter + search
+  const filtered = users.filter(u => {
+    const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
+                        u.email.toLowerCase().includes(search.toLowerCase())
+    const matchRole   = roleFilter === "all" || u.role === roleFilter
+    return matchSearch && matchRole
+  })
 
   return (
     <div className="p-4 md:p-8 space-y-6">
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
-          <p className="text-gray-500 mt-2">
-            Manage team members and permissions
-          </p>
+          <p className="text-gray-500 mt-2">Manage team members and permissions</p>
         </div>
-
-        <button className="bg-black text-white px-4 py-2 rounded-md">
-          + Add User
-        </button>
       </div>
 
-      {/* Role Cards */}
+      {/* Role info cards */}
       <div className="grid md:grid-cols-3 gap-4">
         {[
-          { role: "Viewer", desc: "Read-only access. Can view financial records and analytics but cannot add, edit, or delete data." },
-          { role: "Analyst", desc: "Full data access. Can add, edit, and view transactions and analytics." },
-          { role: "Admin", desc: "Full system access. Can manage users, assign roles, and delete transactions." },
+          { role: "Viewer",  desc: "Read-only access. Can view financial records but cannot add, edit, or delete data." },
+          { role: "Analyst", desc: "Full data access. Can view transactions and analytics." },
+          { role: "Admin",   desc: "Full system access. Can manage users, assign roles, and delete transactions." },
         ].map((item, i) => (
           <div key={i} className="border border-gray-500/30 bg-white p-6 rounded-xl shadow-sm">
-            <span className="text-xs px-2 py-1 rounded bg-gray-200">
-              {item.role}
-            </span>
+            <span className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-800 capitalize">{item.role}</span>
             <p className="text-xs text-gray-500 mt-12">{item.desc}</p>
           </div>
         ))}
       </div>
 
-      {/* Stats */}
+      {/* Stats — from real DB data */}
       <div className="grid md:grid-cols-4 gap-4">
-        <Stat title="Total Users" value="5" />
-        <Stat title="Admins" value="1" />
-        <Stat title="Analysts" value="2" />
-        <Stat title="Viewers" value="2" />
+        <Stat title="Total Users" value={totalUsers} />
+        <Stat title="Admins"      value={adminCount} />
+        <Stat title="Analysts"    value={analystCount} />
+        <Stat title="Viewers"     value={viewerCount} />
       </div>
 
       {/* Filters */}
       <div className="border border-gray-500/30 bg-white rounded-xl p-6 space-y-4">
         <h2 className="font-semibold">Filters & Search</h2>
-
         <div className="grid md:grid-cols-2 gap-4">
           <input
             type="text"
             placeholder="Search by name or email..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
             className="border border-gray-500/30 bg-white p-2 rounded-md w-full"
           />
-
-          <select className="border border-gray-500/30 bg-white p-2 rounded-md">
-            <option>All Roles</option>
-            <option>Admin</option>
-            <option>Analyst</option>
-            <option>Viewer</option>
+          <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
+            className="border border-gray-500/30 bg-white p-2 rounded-md">
+            <option value="all">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="analyst">Analyst</option>
+            <option value="viewer">Viewer</option>
           </select>
         </div>
       </div>
 
-      {/* User List */}
+      {/* User list */}
       <div className="border border-gray-500/30 bg-white rounded-xl p-7 space-y-3">
-        <h2 className="font-semibold">Users ({users.length})</h2>
+        <h2 className="font-semibold">Users ({filtered.length})</h2>
 
-        {users.map((user, index) => (
-          <div
-            key={index}
-            className="flex justify-between items-center border border-gray-500/30 bg-white p-3 rounded-lg hover:bg-gray-50"
-          >
-            {/* Left */}
-            <div className="flex items-center gap-4">
-              <img
-                src={user.avatar}
-                alt=""
-                className="w-10 h-10 rounded-full"
-              />
+        {loading ? (
+          <p className="text-sm text-gray-400 text-center py-6">Loading users...</p>
+        ) : filtered.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-6">No users found.</p>
+        ) : (
+          filtered.map(u => (
+            <div key={u._id}
+              className="flex justify-between items-center border border-gray-500/30 bg-white p-3 rounded-lg hover:bg-gray-50">
 
-              <div>
-                <p className="font-semibold">{user.name}</p>
-                <p className="text-sm text-gray-500">{user.email}</p>
+              {/* Left */}
+              <div className="flex items-center gap-4">
+                {/* Avatar initials */}
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-gray-600 text-sm flex-shrink-0">
+                  {u.name?.[0]?.toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-semibold">
+                    {u.name}
+                    {u._id === currentUserId && (
+                      <span className="ml-2 text-xs text-gray-400">(you)</span>
+                    )}
+                  </p>
+                  <p className="text-sm text-gray-500">{u.email}</p>
+                </div>
+              </div>
+
+              {/* Right */}
+              <div className="flex items-center gap-3">
+
+                {/* Role — shows dropdown if being edited */}
+                {editingId === u._id ? (
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={newRole}
+                      onChange={e => setNewRole(e.target.value)}
+                      className="text-xs border border-gray-300 rounded px-2 py-1"
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="analyst">Analyst</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                    <button onClick={() => handleRoleUpdate(u._id)}
+                      className="text-xs px-2 py-1 bg-black text-white rounded">
+                      Save
+                    </button>
+                    <button onClick={() => setEditingId(null)}
+                      className="text-xs px-2 py-1 border border-gray-300 rounded">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <span className={`text-xs px-3 py-1 rounded-full capitalize ${roleColors[u.role] || "bg-gray-100 text-gray-700"}`}>
+                    {u.role}
+                  </span>
+                )}
+
+                {/* Edit/Delete — disabled for yourself */}
+                {u._id !== currentUserId && (
+                  <>
+                    <button
+                      onClick={() => { setEditingId(u._id); setNewRole(u.role) }}
+                      className="text-sm px-2 py-1 hover:bg-gray-200 rounded">
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(u._id)}
+                      className="text-sm px-2 py-1 text-red-500 hover:bg-red-100 rounded">
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
             </div>
-
-            {/* Right */}
-            <div className="flex items-center gap-3">
-              <span
-                className={`text-xs px-3 py-1 rounded-full ${roleColors[user.role]}`}
-              >
-                {user.role}
-              </span>
-
-              <button className="text-sm px-2 py-1 hover:bg-gray-200 rounded">
-                Edit
-              </button>
-
-              <button className="text-sm px-2 py-1 text-red-500 hover:bg-red-100 rounded">
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
-  );
+  )
 }
 
-/* Small reusable stat component */
 function Stat({ title, value }) {
   return (
     <div className="border border-gray-500/30 bg-white p-7 rounded-xl">
       <p className="text-sm text-gray-500 mb-10">{title}</p>
       <h2 className="text-2xl font-bold">{value}</h2>
     </div>
-  );
+  )
 }

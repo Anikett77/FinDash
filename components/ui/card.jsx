@@ -21,3 +21,4 @@ export function CardDescription({ children }) {
 export function CardContent({ children }) {
   return <div>{children}</div>;
 }
+
