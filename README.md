@@ -180,7 +180,7 @@ npm install
 
 # 3. Create .env.local
 MONGODB_URI=mongodb+srv://your-connection-string
-JWT_SECRET=your-secret-key
+JWT_SECRET=***********
 
 # 4. Run dev server
 npm run dev
