@@ -13,7 +13,7 @@ function getUserFromRequest(request) {
   }
 }
 
-// ── GET /api/transactions ─────────────────────────────────────────────────────
+// ── GET /api/transactions ────────────────────────
 export async function GET(request) {
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -23,7 +23,7 @@ export async function GET(request) {
   return NextResponse.json(transactions)
 }
 
-// ── POST /api/transactions ────────────────────────────────────────────────────
+// ── POST /api/transactions ──────────────────────
 export async function POST(request) {
   const user = getUserFromRequest(request)
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

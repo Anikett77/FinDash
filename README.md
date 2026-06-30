@@ -6,7 +6,7 @@ A full-stack finance dashboard built with **Next.js**, **MongoDB**, and **JWT-ba
 
 ## Live Demo
 
-> **[Add deployed URL here]**
+> ****
 > Test credentials below ↓
 
 | Role    | Email              | Password  |
