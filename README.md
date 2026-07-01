@@ -6,7 +6,7 @@ A full-stack finance dashboard built with **Next.js**, **MongoDB**, and **JWT-ba
 
 ## Live Demo
 
-> ****
+> **https://findash-finance.vercel.app/**
 > Test credentials below ↓
 
 | Role    | Email              | Password  |
